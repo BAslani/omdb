@@ -55,12 +55,14 @@ export default function App() {
   }
 
   useEffect(() => {
+    const controller = new AbortController()
     const fetchMovies = async () => {
       try {
         setIsLoading(true)
         setError('')
         const res = await fetch(
-          `http://www.omdbapi.com/?apikey=${apiKey}&s=${query}`
+          `http://www.omdbapi.com/?apikey=${apiKey}&s=${query}`,
+          { signal: controller.signal }
         )
 
         if (!res.ok) throw new Error('Something went wrong')
@@ -73,7 +75,7 @@ export default function App() {
         setIsLoading(false)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
-        setError(error.message)
+        if (error.name !== 'AbortError') setError(error.message)
       } finally {
         setIsLoading(false)
       }
@@ -83,7 +85,12 @@ export default function App() {
       setError('')
       return
     }
+    handleCloseSelectedMovie()
     fetchMovies()
+
+    return () => {
+      controller.abort()
+    }
   }, [query])
 
   return (
