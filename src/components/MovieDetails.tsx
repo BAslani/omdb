@@ -1,22 +1,36 @@
 import { useEffect, useState } from 'react'
 import StarsRating from './StarsRating'
 import Loader from './Loader'
+import { WatchedMovieType } from '../App'
 
 type Props = {
   selectedId: string
   onCloseSelectedMovie: () => void
+  onAddWatched: (movie: WatchedMovieType) => void
+  watched: WatchedMovieType[]
 }
 
 const apiKey = import.meta.env.VITE_API_KEY
 
-const MovieDetails = ({ selectedId, onCloseSelectedMovie }: Props) => {
+const MovieDetails = ({
+  selectedId,
+  onCloseSelectedMovie,
+  onAddWatched,
+  watched,
+}: Props) => {
   const [movie, setMovie] = useState({})
   const [isLoading, setIsLoading] = useState(false)
   const [userRating, setUserRating] = useState(0)
 
+  const isWatched = watched.map((movie) => movie.imdbID).includes(selectedId)
+  const watchedUserRating = watched.find(
+    (m) => m.imdbID === selectedId
+  )?.userRating
+
   const {
     Title: title,
     Poster: poster,
+    Year: year,
     Runtime: runtime,
     imdbRating,
     Plot: plot,
@@ -28,12 +42,27 @@ const MovieDetails = ({ selectedId, onCloseSelectedMovie }: Props) => {
     Title: string
     Poster: string
     Runtime: string
+    Year: string
     imdbRating: string
     Plot: string
     Released: string
     Actors: string
     Director: string
     Genre: string
+  }
+
+  const handleAdd = () => {
+    const newWatchedMovie = {
+      imdbID: selectedId,
+      title,
+      year,
+      poster,
+      runtime: Number(runtime.split(' ')[0]),
+      imdbRating: Number(imdbRating),
+      userRating,
+    }
+    onAddWatched(newWatchedMovie)
+    onCloseSelectedMovie()
   }
 
   useEffect(() => {
@@ -76,11 +105,27 @@ const MovieDetails = ({ selectedId, onCloseSelectedMovie }: Props) => {
           </header>
           <section>
             <div className='rating'>
-              <StarsRating
-                onSetRating={setUserRating}
-                maxRating={10}
-                size={24}
-              />
+              {isWatched ? (
+                <>
+                  <p>
+                    You have already rated this movie {watchedUserRating}
+                    <span>⭐</span>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <StarsRating
+                    onSetRating={setUserRating}
+                    maxRating={10}
+                    size={24}
+                  />
+                  {userRating > 0 && (
+                    <button className='btn-add' onClick={handleAdd}>
+                      + Add to list
+                    </button>
+                  )}
+                </>
+              )}
             </div>
             <p>
               <em>{plot}</em>

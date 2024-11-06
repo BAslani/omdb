@@ -20,9 +20,9 @@ export type MovieType = {
 
 export type WatchedMovieType = {
   imdbID: string
-  Title: string
-  Year: string
-  Poster: string
+  title: string
+  year: string
+  poster: string
   runtime: number
   imdbRating: number
   userRating: number
@@ -32,7 +32,7 @@ const apiKey = import.meta.env.VITE_API_KEY
 
 export default function App() {
   const [movies, setMovies] = useState([])
-  const [watched] = useState([])
+  const [watched, setWatched] = useState<WatchedMovieType[]>([])
   const [query, setQuery] = useState('')
   const [loading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -40,6 +40,10 @@ export default function App() {
 
   const handleMovieSelect = (id: string) => {
     setSelectedId((currId) => (currId === id ? '' : id))
+  }
+
+  const handleAddWatched = (movie: WatchedMovieType) => {
+    setWatched((watched) => [...watched, movie])
   }
 
   const handleCloseSelectedMovie = () => {
@@ -98,6 +102,8 @@ export default function App() {
             <MovieDetails
               selectedId={selectedId}
               onCloseSelectedMovie={handleCloseSelectedMovie}
+              onAddWatched={handleAddWatched}
+              watched={watched}
             />
           ) : (
             <>
