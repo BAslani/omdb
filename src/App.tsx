@@ -32,7 +32,10 @@ const apiKey = import.meta.env.VITE_API_KEY
 
 export default function App() {
   const [movies, setMovies] = useState([])
-  const [watched, setWatched] = useState<WatchedMovieType[]>([])
+  // const [watched, setWatched] = useState<WatchedMovieType[]>([])
+  const [watched, setWatched] = useState<WatchedMovieType[]>(() => {
+    return JSON.parse(localStorage.getItem('watched') || '[]')
+  })
   const [query, setQuery] = useState('')
   const [loading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -92,6 +95,10 @@ export default function App() {
       controller.abort()
     }
   }, [query])
+
+  useEffect(() => {
+    localStorage.setItem('watched', JSON.stringify(watched))
+  }, [watched])
 
   return (
     <>
