@@ -10,91 +10,33 @@ import WatchedMoviesList from './components/WatchedMoviesList'
 import WatchedSummary from './components/WatchedSummary'
 import Loader from './components/Loader'
 import MovieDetails from './components/MovieDetails'
-
-export type MovieType = {
-  imdbID: string
-  Title: string
-  Year: string
-  Poster: string
-}
-
-export type WatchedMovieType = {
-  imdbID: string
-  title: string
-  year: string
-  poster: string
-  runtime: number
-  imdbRating: number
-  userRating: number
-}
-
-const apiKey = import.meta.env.VITE_API_KEY
+import { useMovies } from './hooks/useMovies'
+import { WatchedMovieType } from './types/types'
 
 export default function App() {
-  const [movies, setMovies] = useState([])
-  // const [watched, setWatched] = useState<WatchedMovieType[]>([])
+  const [query, setQuery] = useState('')
+  const [selectedId, setSelectedId] = useState('')
   const [watched, setWatched] = useState<WatchedMovieType[]>(() => {
     return JSON.parse(localStorage.getItem('watched') || '[]')
   })
-  const [query, setQuery] = useState('')
-  const [loading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [selectedId, setSelectedId] = useState('')
 
-  const handleMovieSelect = (id: string) => {
+  const { movies, isLoading, error } = useMovies({ query })
+
+  function handleMovieSelect(id: string) {
     setSelectedId((currId) => (currId === id ? '' : id))
   }
 
-  const handleAddWatched = (movie: WatchedMovieType) => {
+  function handleAddWatched(movie: WatchedMovieType) {
     setWatched((watched) => [...watched, movie])
   }
 
-  const handleRemoveWatched = (id: string) => {
+  function handleRemoveWatched(id: string) {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id))
   }
 
-  const handleCloseSelectedMovie = () => {
+  function handleCloseSelectedMovie() {
     setSelectedId('')
   }
-
-  useEffect(() => {
-    const controller = new AbortController()
-    const fetchMovies = async () => {
-      try {
-        setIsLoading(true)
-        setError('')
-        const res = await fetch(
-          `http://www.omdbapi.com/?apikey=${apiKey}&s=${query}`,
-          { signal: controller.signal }
-        )
-
-        if (!res.ok) throw new Error('Something went wrong')
-
-        const data = await res.json()
-
-        if (data.Response === 'False') throw new Error('No results found')
-
-        setMovies(data.Search)
-        setIsLoading(false)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        if (error.name !== 'AbortError') setError(error.message)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    if (query.length < 2) {
-      setMovies([])
-      setError('')
-      return
-    }
-    handleCloseSelectedMovie()
-    fetchMovies()
-
-    return () => {
-      controller.abort()
-    }
-  }, [query])
 
   useEffect(() => {
     localStorage.setItem('watched', JSON.stringify(watched))
@@ -109,8 +51,8 @@ export default function App() {
       </Navbar>
       <Main>
         <Box>
-          {loading && <Loader />}
-          {!loading && !error && (
+          {isLoading && <Loader />}
+          {!isLoading && !error && (
             <MovieList movies={movies} onMovieSelect={handleMovieSelect} />
           )}
           {error && <p className='error'>{error}</p>}
