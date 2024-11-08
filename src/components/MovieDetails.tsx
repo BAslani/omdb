@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import StarsRating from './StarsRating'
 import Loader from './Loader'
-import { WatchedMovieType } from '../App'
+import { WatchedMovieType } from '../types/types'
+import { useKey } from '../hooks/useKey'
 
 type Props = {
   selectedId: string
@@ -65,16 +66,7 @@ const MovieDetails = ({
     onCloseSelectedMovie()
   }
 
-  useEffect(() => {
-    function callback(e: KeyboardEvent) {
-      if (e.code === 'Escape') onCloseSelectedMovie()
-    }
-    document.addEventListener('keydown', callback)
-
-    return () => {
-      document.removeEventListener('keydown', callback)
-    }
-  }, [onCloseSelectedMovie])
+  useKey('Escape', onCloseSelectedMovie)
 
   useEffect(() => {
     const getMovieDetails = async () => {
